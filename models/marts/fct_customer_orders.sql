@@ -3,43 +3,50 @@ with
 ----import CTEs
 
 customers as (
-    select * from {{ ref('customers') }}
+    select * from {{ ref('stg_jaffle_shop__customers') }}
 ),
 
 orders as (
-    select * from {{ ref('orders') }}
+    select * from {{ ref('stg_jaffle_shop__orders') }}
 ),
 
 payments as (
-    select * from {{ ref('payments') }}
+    select * from {{ ref('stg_stripe__payments') }}
 ),
 
 -- Logical CTEs
--- Final CTE
--- Simple Select Statment
 
 completed_payments as (
-    select orderid as order_id,
-         max(created) as payment_finalized_date,
-          sum(amount) / 100.0 as total_amount_paid
-        from payments
-        where status <> 'fail'
-        group by 1
+    select 
+        order_id,
+        max(payment_created_at) as payment_finalized_date,
+        sum(payment_amount) as total_amount_paid
+    from payments
+    where payment_status <> 'fail'
+    group by 1
 
 ),
 
  paid_orders as (
-    select orders.id as order_id,
-        orders.user_id    as customer_id,
-        orders.order_date as order_placed_at,
-            orders.status as order_status,
-        completed_payments.total_amount_paid,
-        completed_payments.payment_finalized_date,
-        customers.first_name    as customer_first_name,
-            customers.last_name as customer_last_name
-    from orders
-    left join completed_payments on orders.id = completed_payments.order_id
-    left join customers on orders.user_id = customers.id ),
+
+  select 
+    orders.order_id,
+    orders.customer_id,
+    orders.order_placed_at,
+    orders.order_status,
+
+    completed_payments.total_amount_paid,
+    completed_payments.payment_finalized_date,
+
+    customers.customer_first_name,
+    customers.customer_last_name
+  from orders
+  left join completed_payments on orders.order_id = completed_payments.order_id
+  left join customers on orders.customer_id = customers.customer_id
+
+),
+
+
 
 customer_orders 
     as (select customers.id as customer_id,
