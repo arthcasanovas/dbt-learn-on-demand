@@ -69,16 +69,16 @@ select
         partition by paid_orders.customer_id
         order by paid_orders.order_placed_at
     ) as fdos
-    from paid_orders completed_payments
+    from paid_orders 
     left join customer_orders as c using (customer_id)
     left outer join 
     (
             select
-            completed_payments.order_id,
+            paid_orders.order_id,
             sum(t2.total_amount_paid) as clv_bad
-        from paid_orders p
-        left join paid_orders t2 on completed_payments.customer_id = t2.customer_id and completed_payments.order_id >= t2.order_id
+        from paid_orders 
+        left join paid_orders t2 on paid_orders.customer_id = t2.customer_id and paid_orders.order_id >= t2.order_id
         group by 1
-        order by p.order_id
-    ) x on x.order_id = completed_payments.order_id
+        order by paid_orders.order_id
+    ) x on x.order_id = paid_orders.order_id
     order by order_id
