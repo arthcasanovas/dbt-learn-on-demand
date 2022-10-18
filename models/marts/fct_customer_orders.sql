@@ -51,9 +51,9 @@ customer_orders
     group by 1)
 
 select
-    completed_payments.*,
-    row_number() over (order by completed_payments.order_id) as transaction_seq,
-    row_number() over (partition by customer_id order by completed_payments.order_id) as customer_sales_seq,
+    paid_orders.*,
+    row_number() over (order by paid_orders.order_id) as transaction_seq,
+    row_number() over (partition by customer_id order by paid_orders.order_id) as customer_sales_seq,
     ---new vs returning customer
     case 
     when (
